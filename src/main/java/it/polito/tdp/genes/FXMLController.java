@@ -5,10 +5,12 @@
 package it.polito.tdp.genes;
 
 import java.net.URL;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.genes.model.Genes;
 import it.polito.tdp.genes.model.Model;
+import it.polito.tdp.genes.model.PesoAdiacenti;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -30,7 +32,7 @@ public class FXMLController {
     private Button btnCreaGrafo; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbGeni"
-    private ComboBox<?> cmbGeni; // Value injected by FXMLLoader
+    private ComboBox<Genes> cmbGeni; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnGeniAdiacenti"
     private Button btnGeniAdiacenti; // Value injected by FXMLLoader
@@ -46,19 +48,51 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	model.creaGrafo();
+    	txtResult.setText("Grafo creato\n");
+    	txtResult.appendText("#vertici: "+model.getNumV()+"\n#archi: "+model.getNumE()+"\n\n");
     	
+    	cmbGeni.getItems().addAll(model.getVertici());
 
     }
 
     @FXML
     void doGeniAdiacenti(ActionEvent event) {
-
+    	Genes gene = cmbGeni.getValue();
+    	if (gene == null) {
+    		txtResult.appendText("Selezionare un gene se si vogliono calcolare i geni adiacenti\n");
+    		return;
+    	}
+    	txtResult.appendText("Geni adiacenti a "+gene+":\n");
+    	for (PesoAdiacenti pa : model.getAdiacenti(gene)) {
+    		txtResult.appendText(pa+"\n");
+    	}
     	
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	Genes gene = cmbGeni.getValue();
+    	if (gene == null) {
+    		txtResult.appendText("Selezionare un gene se si vogliono calcolare i geni adiacenti\n");
+    		return;
+    	}
+    	String ingS = txtIng.getText();
+    	if (ingS == "") {
+    		txtResult.setText("Inserire un numero minimo di ingegneri\n");
+    		return;
+    	}
+    	try {
+    		int ing = Integer.parseInt(ingS);
+    		Map<Genes, Integer> geniStudiati = model.simulaIngegneri(gene, ing);
+    		txtResult.setText("Geni in corso di studio: \n\n");
+    		for (Genes g : geniStudiati.keySet()) {
+    			txtResult.appendText(g + " da "+geniStudiati.get(g)+" ingegneri\n");
+    		}
+    	}catch (NumberFormatException e) {
+    		txtResult.setText("Inserire un numero minimo di ingegneri\n[valore numerico]");
+    		return;
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
